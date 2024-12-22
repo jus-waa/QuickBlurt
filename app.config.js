@@ -1,0 +1,16 @@
+export default {
+    expo: {
+      name: "finalProject",
+      slug: "finalProject",
+      version: "1.0.0",
+      android: {
+        experimental: {
+          newArchEnabled: true,
+        },
+      },
+      web: {
+        bundler: "metro",
+      },
+    },
+  };
+  
