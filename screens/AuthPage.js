@@ -1,7 +1,35 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import auth from '@react-native-firebase/auth';
+import { initializeApp } from 'firebase/app';
+import { getAnalytics } from 'firebase/analytics';
 import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image } from 'react-native';
+const firebaseConfig = {
+  apiKey: "AIzaSyCoMJFwhG0WJeYu_pIOEOICvcG4rXfXT4o",
+  authDomain: "quick-blurt.firebaseapp.com",
+  projectId: "quick-blurt",
+  storageBucket: "quick-blurt.firebasestorage.app",
+  messagingSenderId: "834349533962",
+  appId: "1:834349533962:web:ae3fa440602e8af1d688f3",
+  measurementId: "G-LSGL46VZFN"
+};
 
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// You can check if Firebase is initialized by checking the `app` object
+const checkFirebase = () => {
+  if (app) {
+    console.log('Firebase is initialized');
+  } else {
+    console.log('Firebase is not initialized');
+  }
+};
 export default function AuthPage({ navigation }) {
+  // Just check if Firebase app is initialized (no Firestore or database needed)
+  useEffect(() => {
+    checkFirebase();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Top Left Circle with Logo */}
