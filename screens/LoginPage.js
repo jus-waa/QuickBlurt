@@ -1,7 +1,39 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Image } from 'react-native';
+import React, { useState } from 'react';
+import {ActivityIndicator, StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Button, TextInput } from 'react-native';
+import { FIREBASE_AUTH } from '../firebase-config';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from 'firebase/auth';
 
 export default function LoginPage({ navigation }) {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const auth = FIREBASE_AUTH;
+
+  const signIn = async () => {
+    setLoading(true);
+    try {
+      const response = await signInWithEmailAndPassword(auth, email, password);
+      console.log(response);
+    } catch (error) {
+      alert('Sign in failed: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const signUp = async () => {
+    setLoading(true);
+    try {
+      const response = await createUserWithEmailAndPassword(auth, email, password);
+      console.log(response);
+      alert('Check your emails!');
+    } catch (error) {
+      alert('Sign in failed: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Top Left Circle with Logo */}
@@ -14,17 +46,25 @@ export default function LoginPage({ navigation }) {
       {/* Input Fields */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Email</Text>
-         <Text Input style={styles.input} placeholder="quickblurt" />
+         <TextInput value={email} style={styles.input} placeholder="Username" autoCapitalize='none' onChange={(text) => setEmail(text)}> 
+         </TextInput>
         <Text style={styles.label}>Password</Text>
-          <Text Input style={styles.input} placeholder="********" secureTextEntry />
-        <Text style={styles.label}>Forgot Password?</Text>
+          <TextInput value={password} style={styles.input} placeholder="********" autoCapitalize='none' onChange={(text) => setPassword(text)} secureTextEntry> 
+          </TextInput>
+        { loading ? <ActivityIndicator size="large" color="#0000ff" />
+        : <>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.loginButton} onPress={signIn}>
+            <Text style={styles.loginText}>Login</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.registerButton} onPress={signUp}>
+            <Text style={styles.loginText}>Create Account</Text>
+          </TouchableOpacity>
+        </View>
+        </>
+        }
       </View>
-      {/*Login Buttons */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableOpacity>
-      </View>
+
       {/* Bottom Right Circle */}
       <View style={styles.circleBottomRight}></View>
     </SafeAreaView>
@@ -93,20 +133,31 @@ const styles = StyleSheet.create({
     top: 50,
     paddingVertical: 15,
     paddingHorizontal: 80,
-    borderRadius: 25,
+    borderRadius: 50,
   },
   loginText: {
     color: '#6E6E6E',
     fontSize: 18,
     fontWeight: 'bold',
   },
+  registerButton: {
+    backgroundColor: '#fff',
+    top: 50,
+    paddingVertical: 15,
+    paddingHorizontal: 38,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#FB8130',
+    marginTop: 10,
+  },
   circleBottomRight: {
     width: 300,
     height: 300,
     backgroundColor: '#FB8130',
     borderRadius: 150,
-    position: 'absolute',
+    position: '',
     bottom: -100,
-    right: -100,
+    right: -180,
+    zIndex: 1,
   },
 });
