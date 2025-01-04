@@ -2,33 +2,38 @@ import { StatusBar } from 'expo-status-bar';
 import React, {useState}  from 'react';
 import { StyleSheet, Text, View, Button, Alert, TouchableOpacity, Image, Pressable, ImageBackground } from 'react-native';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { FIREBASE_AUTH } from '../firebase-config.js';
+import { NavigationProp } from '@react-navigation/native';
 
-export default function CreatePage({ navigation }) {
+interface RouterProps {
+  navigation: NavigationProp<any, any>;
+}
+export default function CreatePage({ navigation }:RouterProps) {
   const imageBg = require('../assets/images/background.jpg');
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <ImageBackground source={imageBg} resizeMode="cover" style={styles.image}>
           {/* Header */}
-          <View style={[styles.header, styles.content]}>
-          <View style={styles.menuContainer}>  
-            <TouchableOpacity>
-              <Image
-                source={require('../assets/images/menu.png')}
-              />
+          <View style={styles.header}>
+            <View style={styles.menuContainer}>  
+            <TouchableOpacity onPress={() => FIREBASE_AUTH.signOut()} >
+            <Image
+                  source={require('../assets/images/logout.png')}
+                />
             </TouchableOpacity>
-          </View>
-          <Text style={styles.title}>Hello, User!</Text>
-          <Text style={styles.text}>Have fun learning!</Text>
+            </View>
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>Hello, User!</Text>
+              <Text style={styles.text}>Have fun learning!</Text>
+            </View>
           </View>
           {/* Main Content */}
-          <View style={[styles.mainContent, styles.content]}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Text style={styles.back}> 
-                  Back
-                </Text>
-              </TouchableOpacity>
-            <View style={styles.contentContainer}>
+          <View style={styles.mainContent}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.contentContainer} onPress={() => navigation.navigate('Input')}>
               <View style={styles.enterText}>
                 <Image
                   style={styles.contentImg}
@@ -38,7 +43,7 @@ export default function CreatePage({ navigation }) {
                   Enter Text
                 </Text>
               </View>
-            </View>
+            </TouchableOpacity>
             <View style={styles.importContainer}>
             <View style={styles.enterText}>
                 <Image
@@ -52,7 +57,7 @@ export default function CreatePage({ navigation }) {
             </View>
           </View>
           {/* Footer */}
-          <View style={[styles.footer, styles.content]}>
+          <View style={styles.footer}>
           <View style={styles.footerNav}>
             <View >
               <TouchableOpacity style={styles.badgeButton}>
@@ -62,7 +67,7 @@ export default function CreatePage({ navigation }) {
               </TouchableOpacity>
             </View>
             <View >
-              <TouchableOpacity style={styles.homeButton}>
+              <TouchableOpacity>
                 <Image
                   source={require('../assets/images/home.png')}
                 />
@@ -94,8 +99,16 @@ const styles = StyleSheet.create({
   },
   header: {
     flex: 1,
-    justifyContent: 'center',
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
     backgroundColor: '#fff',
+    paddingHorizontal: 10,
+  },
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center', 
+    marginRight: 60,
   },
   mainContent: {
     flex: 5,
@@ -127,7 +140,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   menuContainer: {
-    position: 'absolute',
     width: 50,
     height: 50,
     borderRadius: 100,
@@ -144,16 +156,20 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 20,
   },
-  back: {
-    fontSize: 20,
+  backButton: {
+    backgroundColor: '#Fcd9c0',
+    padding: 5,
+    borderRadius: 20,
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    width:90,
+    marginTop: 20,
+    marginLeft: 10,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#3b3b41',
     fontWeight: 'bold',
-    padding: 10,
-    margin: 10,
-    width: 80,
-    textAlign: 'center',
-    backgroundColor: '#fff',  
-    borderRadius: 50,  
-    
   },
   contentContainer: {
     flex: 1,

@@ -1,32 +1,66 @@
 import { StatusBar } from 'expo-status-bar';
-import React, {useState}  from 'react';
-import { StyleSheet, Text, View, Button, Alert, TouchableOpacity, Image, Pressable, ImageBackground } from 'react-native';
+import React, {useState, useEffect}  from 'react';
+import { StyleSheet, Text, View, Button, Alert, TouchableOpacity, Image, ImageBackground } from 'react-native';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { FIREBASE_AUTH, FIREBASE_APP, FIREBASE_DB } from '../firebase-config.js';
+import { collection, onSnapshot } from "firebase/firestore";
+import { FlashList } from '@shopify/flash-list';
 
-export default function HomePage({ navigation }) {
-  const imageBg = require('../assets/images/background.jpg');
+interface RouterProps {
+  navigation: NavigationProp<any, any>;
+}
+export default function HomePage({ navigation }: RouterProps) {
+  const imageBg = require('../assets/images/background.jpg'); 
+
+  const [notes, setNotes] = useState([]);
+  const navigate = useNavigation(); 
+  const firebase = FIREBASE_APP;
+  const firestore = FIREBASE_DB;
+
+  //fetch the data from firestore
+  useEffect(() => {
+    // Create a reference to the 'notes' collection
+    const notesCollectionRef = collection(firestore, 'notes');
+  
+    // Set up a real-time subscription to the collection
+    const unsubscribe = onSnapshot(notesCollectionRef, (querySnapshot) => {
+      const newNotes = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        newNotes.push({ note: data.note, title: data.title, id: doc.id });
+      });
+      setNotes(newNotes); // Update the state with fetched notes
+    });
+  
+    // Clean up the subscription when the component unmounts
+    return () => unsubscribe();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <ImageBackground source={imageBg} resizeMode="cover" style={styles.image}>
           {/* Header */}
-          <View style={[styles.header, styles.content]}>
-          <View style={styles.menuContainer}>  
-            <TouchableOpacity>
-              <Image
-                source={require('../assets/images/menu.png')}
-              />
+          <View style={styles.header}>
+            <View style={styles.menuContainer}>  
+            <TouchableOpacity onPress={() => FIREBASE_AUTH.signOut()} >
+            <Image
+                  source={require('../assets/images/logout.png')}
+                />
             </TouchableOpacity>
-          </View>
-          <Text style={styles.title}>Hello, User!</Text>
-          <Text style={styles.text}>Have fun learning!</Text>
+            </View>
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>Hello, User!</Text>
+              <Text style={styles.text}>Have fun learning!</Text>
+            </View>
           </View>
           {/* Main Content */}
-          <View style={[styles.mainContent, styles.content]}>
+          <View style={styles.mainContent}>
             {/* Get Started */}
             <View style={styles.getStartedContainer}>
               <View style={styles.getStarted}>
-                  <TouchableOpacity style={[styles.getStartedButton, styles.gSBI]} onPress={() => navigation.navigate('Create')}>
+                  <TouchableOpacity style={styles.getStartedButton} onPress={() => navigation.navigate('Create')}>
                     <Image 
                       style={{ zIndex: 1 }}
                       source={require('../assets/images/add.png')}
@@ -40,19 +74,28 @@ export default function HomePage({ navigation }) {
               <View> 
                 <Text style={styles.yourBlurtsText}>Search</Text>
               </View>
+              {/* Blurts Flashlist */}
               <View style={styles.blurtsContainer}>
-                  <View style={styles.deleteButton}>
-                    <Image 
-                      source={require('../assets/images/delete.png')}
-                    />
-                  </View>
-                  <Text style={styles.blurtsText}>Title</Text>
-                  <Text></Text>
+                  <FlashList
+                    data={notes}
+                    numColumns={2} 
+                    estimatedItemSize={100}
+                    renderItem={({item}) => (
+                      <View  style={styles.blurtNotes}>
+                        <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 5}}>
+                          {item.title}
+                        </Text>
+                        <Text>
+                          {item.note}
+                        </Text>
+                      </View>
+                    )}
+                  />
               </View>
             </View>
           </View>
           {/* Footer */}
-          <View style={[styles.footer, styles.content]}>
+          <View style={styles.footer}>
           <View style={styles.footerNav}>
             <View >
               <TouchableOpacity style={styles.badgeButton}>
@@ -62,7 +105,7 @@ export default function HomePage({ navigation }) {
               </TouchableOpacity>
             </View>
             <View >
-              <TouchableOpacity style={styles.homeButton}>
+              <TouchableOpacity>
                 <Image
                   source={require('../assets/images/home.png')}
                 />
@@ -94,8 +137,17 @@ const styles = StyleSheet.create({
   },
   header: {
     flex: 1,
-    justifyContent: 'center',
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
     backgroundColor: '#fff',
+    paddingHorizontal: 10,
+  },
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center', 
+    marginRight: 60,
+
   },
   mainContent: {
     flex: 5,
@@ -128,7 +180,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   menuContainer: {
-    position: 'absolute',
     width: 50,
     height: 50,
     borderRadius: 100,
@@ -167,23 +218,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  gSBI: {
-    marginLeft: 14,
-    marginRight: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: 20,
-  },
   deleteButton: {
     alignItems: 'flex-end',
   },
   yourBlurtsText: {
     fontSize: 18,
-    width: '100%',
+    width: '90%',
     padding: 6,
     borderRadius: 20,
     backgroundColor: '#fff',
-    marginBottom: 20,
-    paddingRight: 15,
+    marginBottom: 10,
+    marginLeft: 20,
+    paddingRight: 20,
     fontWeight: 'bold',
     justifyContent: 'center',
     textAlign: 'right',
@@ -193,12 +239,27 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   blurtsContainer: {
-    padding: 10,
-    height: 150,
-    width: 150,
+    flex: 1,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    justifyContent: 'center', // Center vertically
+    alignItems: 'center',    // Center horizontally
+    padding: 10,      
   },
+  blurtNotes: {
+    flex: 1,
+    margin: 10,              // Space between items
+    padding: 15,             // Internal padding
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    elevation: 5,            // Shadow for Android
+    shadowColor: '#000',     // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    alignItems: 'center',    // Center text horizontally
+    justifyContent: 'center' // Center text vertically
+  },
+  
   blurtsText: {
     fontSize: 20,
     height: '100%',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import {ActivityIndicator, StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Button, TextInput } from 'react-native';
-import { FIREBASE_AUTH } from '../firebase-config';
+import {ActivityIndicator, StyleSheet, View, Text, TouchableOpacity, SafeAreaView, TextInput, KeyboardAvoidingView } from 'react-native';
+import { FIREBASE_AUTH } from '../firebase-config.js';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from 'firebase/auth';
 
 export default function LoginPage({ navigation }) {
@@ -15,6 +15,7 @@ export default function LoginPage({ navigation }) {
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log(response);
     } catch (error) {
+      console.log(error);
       alert('Sign in failed: ' + error.message);
     } finally {
       setLoading(false);
@@ -40,31 +41,33 @@ export default function LoginPage({ navigation }) {
       <View style={styles.circleTopLeft}>
         <Text style={styles.logoText}>Quick Blurt</Text>
       </View>
-
       {/* Top Right Circle */}
       <View style={styles.circleTopRight}></View>
+
       {/* Input Fields */}
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Email</Text>
-         <TextInput value={email} style={styles.input} placeholder="Username" autoCapitalize='none' onChange={(text) => setEmail(text)}> 
-         </TextInput>
-        <Text style={styles.label}>Password</Text>
-          <TextInput value={password} style={styles.input} placeholder="********" autoCapitalize='none' onChange={(text) => setPassword(text)} secureTextEntry> 
-          </TextInput>
-        { loading ? <ActivityIndicator size="large" color="#0000ff" />
-        : <>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.loginButton} onPress={signIn}>
-            <Text style={styles.loginText}>Login</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.registerButton} onPress={signUp}>
-            <Text style={styles.loginText}>Create Account</Text>
-          </TouchableOpacity>
-        </View>
-        </>
-        }
-      </View>
+        <KeyboardAvoidingView behavior="padding">
+          <Text style={styles.label}>Email</Text>
+           <TextInput value={email} style={styles.input} placeholder="Email" autoCapitalize='none' onChangeText={(text) => setEmail(text)}></TextInput>
+          <Text style={styles.label}>Password</Text>
+            <TextInput  secureTextEntry={true} value={password} style={styles.input} placeholder="Password" autoCapitalize='none' onChangeText={(text) => setPassword(text)}></TextInput>
 
+          { loading ? (
+             <ActivityIndicator size="large" color="#0000ff" />
+          ) : (
+          <>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity  style={styles.loginButton} onPress={signIn}>
+                <Text style={styles.loginText}>Login</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.registerButton} onPress={signUp}>
+                <Text style={styles.loginText}>Create Account</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+          )}
+        </KeyboardAvoidingView>
+      </View>
       {/* Bottom Right Circle */}
       <View style={styles.circleBottomRight}></View>
     </SafeAreaView>
@@ -155,7 +158,6 @@ const styles = StyleSheet.create({
     height: 300,
     backgroundColor: '#FB8130',
     borderRadius: 150,
-    position: '',
     bottom: -100,
     right: -180,
     zIndex: 1,
