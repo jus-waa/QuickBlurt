@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {useState, useEffect}  from 'react';
-import { StyleSheet, Text, View, Button, Alert, TouchableOpacity, Image, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, Button, Alert, TouchableOpacity, Image, ImageBackground, ScrollView } from 'react-native';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FIREBASE_AUTH, FIREBASE_APP, FIREBASE_DB } from '../firebase-config.js';
@@ -30,6 +30,7 @@ export default function HomePage({ navigation }: RouterProps) {
         const data = doc.data();
         newNotes.push({ note: data.note, title: data.title, id: doc.id });
       });
+      console.log('Fetched Notes:', newNotes); // Add this line
       setNotes(newNotes); // Update the state with fetched notes
     });
   
@@ -62,7 +63,6 @@ export default function HomePage({ navigation }: RouterProps) {
               <View style={styles.getStarted}>
                   <TouchableOpacity style={styles.getStartedButton} onPress={() => navigation.navigate('Create')}>
                     <Image 
-                      style={{ zIndex: 1 }}
                       source={require('../assets/images/add.png')}
                     />
                   </TouchableOpacity>
@@ -71,27 +71,20 @@ export default function HomePage({ navigation }: RouterProps) {
             </View>
             {/* Your Blurts */}
             <View style={styles.yourBlurts}>
-              <View> 
-                <Text style={styles.yourBlurtsText}>Search</Text>
-              </View>
               {/* Blurts Flashlist */}
-              <View style={styles.blurtsContainer}>
-                  <FlashList
-                    data={notes}
-                    numColumns={2} 
-                    estimatedItemSize={100}
-                    renderItem={({item}) => (
-                      <View  style={styles.blurtNotes}>
-                        <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 5}}>
-                          {item.title}
-                        </Text>
-                        <Text>
-                          {item.note}
-                        </Text>
-                      </View>
-                    )}
+                <FlashList
+                  data={notes}
+                  numColumns={2}
+                  estimatedItemSize={100}
+                  renderItem={({ item }) => (
+                    <View style={styles.blurtNotes} key={item.id}>
+                      <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 5 }}>
+                        {item.title}
+                      </Text>
+                      <Text>{item.note}</Text>
+                    </View>
+                  )}
                   />
-              </View>
             </View>
           </View>
           {/* Footer */}
@@ -151,6 +144,7 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 5,
+    padding: 10,
   },
   footer: {
     flex: 0.7,
@@ -235,16 +229,17 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   yourBlurts: {
-    height: '100%',
+    flex: 1,
     padding: 20,
   },
   blurtsContainer: {
-    flex: 1,
-    borderRadius: 20,
-    justifyContent: 'center', // Center vertically
-    alignItems: 'center',    // Center horizontally
-    padding: 10,      
+    flex: 1, // Ensures it takes available space in the parent
+    width: '100%', // Makes it span the full width of the parent
+    padding: 10, 
+    alignItems: 'center', 
+    justifyContent: 'center',
   },
+  
   blurtNotes: {
     flex: 1,
     margin: 10,              // Space between items
@@ -259,7 +254,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',    // Center text horizontally
     justifyContent: 'center' // Center text vertically
   },
-  
   blurtsText: {
     fontSize: 20,
     height: '100%',
