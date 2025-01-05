@@ -1,14 +1,36 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {useState}  from 'react';
-import { StyleSheet, Text, View, Button, Alert, TouchableOpacity, Image, TextInput, ImageBackground, ScrollView } from 'react-native';
+import { Keyboard, StyleSheet, Text, View, Button, Alert, TouchableOpacity, Image, TextInput, ImageBackground, ScrollView } from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { FIREBASE_AUTH, FIREBASE_APP, FIREBASE_DB } from '../firebase-config.js';
+import { collection, onSnapshot, addDoc } from "firebase/firestore";
 
 interface RouterProps {
   navigation: NavigationProp<any, any>;
 }
 export default function InputText({ navigation }:RouterProps) {
   const imageBg = require('../assets/images/background.jpg');
+  const [title, setTitle] = useState('');
+  const [note, setNote] = useState('');
+  const firebase = FIREBASE_APP;
+  const firestore = FIREBASE_DB;
+
+  const handleAdd = async () => {
+  
+    try {
+      // Add a new document to the "notes" collection
+      await addDoc(collection(firestore, 'notes'), { title, note });
+      
+      // Clear input fields and dismiss the keyboard
+      setTitle('');
+      setNote('');
+      Keyboard.dismiss();
+    } catch (error) {
+      alert(error.message); // Show error message
+    }
+  };
+
   return (
       <SafeAreaProvider>
         <SafeAreaView style={styles.container}>
@@ -33,7 +55,12 @@ export default function InputText({ navigation }:RouterProps) {
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Subject Name:</Text>
-              <TextInput style={styles.input} placeholder="Title" />
+              <TextInput 
+                style={styles.input}
+               placeholder="Title"
+               value={title}
+               onChangeText={(text) => setTitle(text)}
+               />
             </View>
 
             <View style={styles.inputContainer}>
@@ -51,12 +78,18 @@ export default function InputText({ navigation }:RouterProps) {
                     style={styles.textArea}
                     multiline
                     placeholder="Enter your text here"
+                    value={note}
+                    onChangeText={(text) => setNote(text)}
                   />
                 </ScrollView>
               </View>
             </View>
             
-            <TouchableOpacity style={styles.continueButton}>
+            <TouchableOpacity 
+              onPress={handleAdd} 
+              style={styles.continueButton} 
+              
+              >
               <Text style={styles.continueButtonText}>Continue</Text>
             </TouchableOpacity>
           </View>
