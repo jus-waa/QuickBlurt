@@ -81,7 +81,6 @@ export default function HomePage({ navigation }: RouterProps) {
                       <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 5 }}>
                         {item.title}
                       </Text>
-                      <Text>{item.note}</Text>
                     </View>
                   )}
                   />
