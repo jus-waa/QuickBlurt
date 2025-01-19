@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "834349533962",
+    "project_id": "quick-blurt",
+    "storage_bucket": "quick-blurt.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:834349533962:android:0cdfa7b094b8ded7d688f3",
+        "android_client_info": {
+          "package_name": "com.finalproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOhh_D9Wx5KZcyLwz-y8FSsNRT5a2kOo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
