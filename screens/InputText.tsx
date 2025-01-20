@@ -16,18 +16,21 @@ export default function InputText({ navigation }:RouterProps) {
   const firebase = FIREBASE_APP;
   const firestore = FIREBASE_DB;
 
-  const handleAdd = async () => {
-  
+  // Add a new blurt to Firestore and return its ID
+  const handleAdd = async (): Promise<string | null> => {
     try {
-      // Add a new document to the "notes" collection
-      await addDoc(collection(firestore, 'notes'), { title, note });
-      
+      const newBlurt = { title, note, createdAt: new Date() };
+      const docRef = await addDoc(collection(firestore, 'notes'), newBlurt);
+
       // Clear input fields and dismiss the keyboard
       setTitle('');
       setNote('');
       Keyboard.dismiss();
+
+      return docRef.id; // Return the new document's ID
     } catch (error) {
-      alert(error.message); // Show error message
+      Alert.alert('Error', error.message); // Show error message
+      return null;
     }
   };
 
@@ -85,15 +88,20 @@ export default function InputText({ navigation }:RouterProps) {
               </View>
             </View>
             
-            <TouchableOpacity 
-                onPress={async () => {
-                  await handleAdd(); // Save the note
-                  navigation.navigate('Blurt'); // Navigate to the next screen
-                }}
-                style={styles.continueButton}
-              >
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </TouchableOpacity>
+            <TouchableOpacity
+          onPress={async () => {
+            const newBlurtId = await handleAdd(); // Save the note and get the new blurt's ID
+
+            if (newBlurtId) {
+              navigation.navigate('Blurt', { id: newBlurtId }); // Navigate to the Blurt screen with the new ID
+            } else {
+              Alert.alert('Error', 'Failed to create the blurt. Please try again.');
+            }
+          }}
+          style={styles.continueButton}
+        >
+          <Text style={styles.continueButtonText}>Continue</Text>
+        </TouchableOpacity>
           </View>
           {/* Footer */}
           <View style={styles.footer}>

@@ -25,7 +25,7 @@ function InsideLayout() {
       <InsideStack.Screen name={"Input"} component={InputText} />
       <InsideStack.Screen name={"Blurt"} component={BlurtingText} />
       <InsideStack.Screen name={"BlurtDetails"} component={BlurtDetails} />
-
+      
     </InsideStack.Navigator>
   )
 }

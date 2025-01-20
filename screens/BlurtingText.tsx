@@ -1,61 +1,88 @@
 import React, { useState, useEffect } from 'react';
-import {StyleSheet,Text,View,TouchableOpacity,Image,TextInput,ImageBackground,
-SafeAreaView,ScrollView,ActivityIndicator} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  ImageBackground,
+  SafeAreaView,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { FIREBASE_DB } from '../firebase-config';
 import Tts from 'react-native-tts';
-import { FIREBASE_DB } from '../firebase-config.js';
 
 interface RouterProps {
   navigation: NavigationProp<any, any>;
+  route: { params: { id: string } }; // Define route params with 'id'
 }
 
-export default function App({ navigation }) {
+export default function App({ navigation, route }: RouterProps) {
   const imageBg = require('../assets/images/background.jpg');
-  const [note, setNotes] = useState('');
-  const [latestTitle, setLatestTitle] = useState('');
+  const [noteTitle, setNoteTitle] = useState('Loading...'); // Default title
+  const [noteContent, setNoteContent] = useState('hi');
   const [isLoading, setIsLoading] = useState(false);
-  const firestore = FIREBASE_DB;
 
-  // Fetch the most recently added document from Firestore
-  const fetchLatestDocument = async () => {
-    setIsLoading(true);
-    try {
-      const notesCollectionRef = collection(firestore, 'notes');
-      const q = query(notesCollectionRef, orderBy('timestamp', 'desc'), limit(1)); // Sort by 'timestamp' descending, limit to 1
-      const querySnapshot = await getDocs(q);
+  const { id } = route.params; // Extract 'id' from the route parameters
 
-      if (!querySnapshot.empty) {
-        const latestDoc = querySnapshot.docs[0];
-        const data = latestDoc.data();
-        setNotes(data.note || 'No note found'); // Update note state
-        setLatestTitle(data.title || 'Untitled'); // Update title state
-      } else {
-        setNotes('No notes found in the database.');
-        setLatestTitle('Untitled');
-      }
-    } catch (error) {
-      console.error('Error fetching the latest document:', error.message);
-      setNotes('Error fetching data.');
-      setLatestTitle('Error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Text-to-Speech
-  const speakSentence = () => {
-    if (note) {
-      Tts.speak(note);
-    } else {
-      alert('No sentence available to read aloud.');
-    }
-  };
-
-  // Fetch data when the component mounts
   useEffect(() => {
-    fetchLatestDocument();
+    
+    if (Tts) {
+      try {
+        Tts.getInitStatus()
+        Tts.setDefaultLanguage('en-US'); // Set the default language
+        Tts.setDefaultRate(0.5);        // Adjust speaking rate
+        console.log('TTS initialized successfully');
+      } catch (error) {
+        console.error('Error initializing TTS:', error);
+      }
+    } else {
+      console.error('Tts module is not available');
+    }
   }, []);
+
+// Fetch the note's title and content
+const fetchNoteDetails = async () => {
+  setIsLoading(true);
+  try {
+    const noteRef = doc(FIREBASE_DB, 'notes', id); // Reference the document by 'id'
+    const noteSnap = await getDoc(noteRef);
+
+    if (noteSnap.exists()) {
+      setNoteTitle(noteSnap.data().title || 'Untitled'); // Set the title or fallback
+      setNoteContent(noteSnap.data().note || 'No content available.'); // Set the note content
+    } else {
+      setNoteTitle('Note not found'); // Fallback if the note doesn't exist
+      setNoteContent('');
+    }
+  } catch (error) {
+    console.error('Error fetching note details:', error.message);
+    setNoteTitle('Error loading note');
+    setNoteContent('');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
+// Trigger Text-to-Speech for the note content
+const handleTextToSpeech = () => {
+    if (noteContent) {
+      Tts.speak(noteContent); // Use TTS to speak the note content
+    } else {
+      Alert.alert('Error', 'No content available to read aloud.');
+    }
+  };
+
+  // Fetch the note title when the component mounts
+  useEffect(() => {
+    fetchNoteDetails();
+  }, [id]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,38 +97,34 @@ export default function App({ navigation }) {
           <Text style={styles.title}>Blurt Away!</Text>
           <Text style={styles.text}>You got this!</Text>
         </View>
+
         {/* Main Content */}
         <View style={[styles.mainContent]}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
-          {/* Text to Speech Button and File Button */}
+
+          {/* Text-to-Speech Button and Title */}
           <View style={styles.card}>
-            <TouchableOpacity onPress={speakSentence}>
+            <TouchableOpacity onPress={() =>handleTextToSpeech}>
               <Image style={styles.speechImg} source={require('../assets/images/speech.png')} />
             </TouchableOpacity>
-            {/* Display the most recent document title */}
-            <Text style={styles.text1}>{latestTitle}</Text>
+            {/* Display the fetched note title */}
+            <Text style={styles.text1}>{noteTitle}</Text>
             <TouchableOpacity style={styles.fileButton}>
               <Image style={styles.fileImg} source={require('../assets/images/File.png')} />
             </TouchableOpacity>
           </View>
+
+          {/* Content */}
           <View style={styles.inputContainer}>
             <View style={styles.textAreaContainer}>
-              <View style={styles.timerContainer}>
-                {/* Start Button */}
-                <TouchableOpacity>
-                  <Text style={styles.label}>Start</Text>
-                </TouchableOpacity>
-              </View>
               <ScrollView>
-                {/* Render the lines inside the ScrollView */}
                 <View style={styles.linesContainer}>
                   {[...Array(1000)].map((_, index) => (
                     <View key={index} style={styles.line} />
                   ))}
                 </View>
-                {/* TextInput overlaid on the lines */}
                 <TextInput
                   style={styles.textArea}
                   multiline
@@ -111,8 +134,8 @@ export default function App({ navigation }) {
             </View>
           </View>
         </View>
-        {/* Footer */}
-        <View style={[styles.footer]}>
+         {/* Footer */}
+         <View style={[styles.footer]}>
           <View style={styles.footerNav}>
             <View>
               <TouchableOpacity style={styles.badgeButton}>
@@ -169,26 +192,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FB8130',
     borderRadius: 50,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  menuContainer: {
-    position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 100,
-    backgroundColor: '#FB8130',
-    marginLeft: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   badgeButton: {
     padding: 10,
     marginLeft: 20,
@@ -197,16 +200,18 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 20,
   },
-  button: {
-    padding: 8,
-    marginTop: 50,
-    marginLeft: 30,
+  backButton: {
+    backgroundColor: '#Fcd9c0',
+    padding: 5,
     borderRadius: 20,
-    backgroundColor: '#fcd9c0',
+    alignItems: 'center',
     alignSelf: 'flex-start',
+    width: 90,
+    marginTop: 10,
+    marginBottom: 25,
   },
-  buttonText: {
-    fontSize: 20,
+  backButtonText: {
+    fontSize: 16,
     color: '#3b3b41',
     fontWeight: 'bold',
   },
@@ -276,45 +281,24 @@ const styles = StyleSheet.create({
   inputContainer: {
     alignItems: 'center',
   },
-  label: {
-    fontSize: 20,
+  title: {
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#3b3b41',
-    marginLeft: 10,
-    marginTop: 10,
-    marginBottom: 10,
-    padding: 10,
-    paddingLeft: 30,
-    paddingRight: 30,
-    borderRadius: 30,
-    backgroundColor: '#fcd9c0',
+    textAlign: 'center',
   },
-  timerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-  timerText: {
-    fontSize: 18,
-    marginRight: 50,
-    fontWeight: 'bold',
-    color: '#3b3b41',
-  },
-  backButton: {
-    backgroundColor: '#Fcd9c0',
-    padding: 5,
-    borderRadius: 20,
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    width:90,
-    marginTop: 10,
-    marginBottom:25
-  },
-  backButtonText: {
+  text: {
     fontSize: 16,
-    color: '#3b3b41',
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  menuContainer: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    borderRadius: 100,
+    backgroundColor: '#FB8130',
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

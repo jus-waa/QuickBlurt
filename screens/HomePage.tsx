@@ -80,7 +80,7 @@ export default function HomePage({ navigation }: RouterProps) {
             {/* Get Started */}
             <View style={styles.getStartedContainer}>
               <View style={styles.getStarted}>
-                <TouchableOpacity style={styles.getStartedButton} onPress={() => navigation.navigate('Create')}>
+                <TouchableOpacity style={styles.getStartedButton} onPress={() => navigation.navigate('Input')}>
                   <Image source={require('../assets/images/add.png')} />
                 </TouchableOpacity>
                 <Text style={styles.getStartedText}>Get Started</Text>
